@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام طريق التشييد - المحاسبي</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #34495e;
+            --accent: #3498db;
+            --success: #27ae60;
+            --danger: #e74c3c;
+            --bg: #ecf0f1;
+            --white: #ffffff;
+        }
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { margin: 0; background-color: var(--bg); color: var(--primary); }
+        
+        /* Navbar / Tabs */
+        .navbar { background-color: var(--primary); display: flex; padding: 0 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .nav-btn { background: none; border: none; color: var(--white); padding: 15px 20px; font-size: 16px; cursor: pointer; transition: 0.3s; }
+        .nav-btn:hover, .nav-btn.active { background-color: var(--accent); }
+        
+        /* Layout */
+        .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
+        .tab-content { display: none; background: var(--white); padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); animation: fadeIn 0.3s; }
+        .tab-content.active { display: block; }
+        
+        /* Forms */
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .form-group { display: flex; flex-direction: column; }
+        label { margin-bottom: 5px; font-weight: bold; font-size: 14px; }
+        input, select { padding: 10px; border: 1px solid #bdc3c7; border-radius: 4px; font-size: 14px; }
+        input:focus, select:focus { outline: none; border-color: var(--accent); }
+        
+        /* Buttons */
+        .btn { padding: 10px 20px; border: none; border-radius: 4px; color: var(--white); font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-success { background-color: var(--success); width: 100%; margin-top: 15px; font-size: 16px;}
+        .btn-success:hover { background-color: #219a52; }
+        .btn-primary { background-color: var(--accent); }
+        
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; text-align: right; border-bottom: 1px solid #ecf0f1; }
+        th { background-color: var(--secondary); color: var(--white); }
+        tr:hover { background-color: #f9f9f9; }
+        
+        /* Dashboard Cards */
+        .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .card { background: var(--white); padding: 20px; border-radius: 8px; border-right: 5px solid var(--accent); box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .card h3 { margin: 0 0 10px 0; color: var(--secondary); font-size: 16px; }
+        .card .amount { font-size: 24px; font-weight: bold; color: var(--primary); }
+        .card.income { border-color: var(--success); }
+        .card.expense { border-color: var(--danger); }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <!-- القائمة العلوية للتبويبات -->
+    <nav class="navbar">
+        <button class="nav-btn active" onclick="openTab(event, 'tab-transactions')">📝 اليومية العامة</button>
+        <button class="nav-btn" onclick="openTab(event, 'tab-statements')">👤 كشوفات الذمم</button>
+        <button class="nav-btn" onclick="openTab(event, 'tab-dashboard')">📊 لوحة التحكم</button>
+    </nav>
+
+    <div class="container">
+        
+        <!-- التبويبة الأولى: اليومية العامة -->
+        <div id="tab-transactions" class="tab-content active">
+            <h2>إضافة قيد جديد</h2>
+            <form id="transaction-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>نوع العملية</label>
+                        <select id="t-type" required>
+                            <option value="وارد">وارد</option>
+                            <option value="صادر">صادر</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>المبلغ</label>
+                        <input type="number" id="t-amount" required placeholder="أدخل المبلغ">
+                    </div>
+                    <div class="form-group">
+                        <label>العملة</label>
+                        <select id="t-currency">
+                            <option value="IQD">دينار عراقي (IQD)</option>
+                            <option value="USD">دولار أمريكي (USD)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>التاريخ</label>
+                        <input type="date" id="t-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label>مركز التكلفة</label>
+                        <select id="t-cost-center" required>
+                            <option value="مقر الشركة">مقر الشركة</option>
+                            <option value="مشروع سيد الحليب">مشروع سيد الحليب</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>بيد (الاسم)</label>
+                        <input type="text" id="t-person" required placeholder="مثال: عباس مشتريات">
+                    </div>
+                    <div class="form-group">
+                        <label>رقم الأمر (اختياري)</label>
+                        <input type="text" id="t-order">
+                    </div>
+                    <div class="form-group">
+                        <label>التفاصيل</label>
+                        <input type="text" id="t-details" required placeholder="تفاصيل الحركة">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-success">حفظ وترحيل القيد</button>
+            </form>
+
+            <hr style="margin: 30px 0; border: 0; border-top: 1px solid #ecf0f1;">
+
+            <h2>سجل الحركات الأخيرة</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>التاريخ</th>
+                        <th>النوع</th>
+                        <th>المبلغ</th>
+                        <th>العملة</th>
+                        <th>بيد</th>
+                        <th>مركز التكلفة</th>
+                        <th>التفاصيل</th>
+                    </tr>
+                </thead>
+                <tbody id="transactions-table-body">
+                    <!-- سيتم إضافة البيانات هنا بواسطة الجافا سكربت -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- التبويبة الثانية: كشوفات الذمم -->
+        <div id="tab-statements" class="tab-content">
+            <h2>استخراج كشف حساب ذمة</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>اسم الحساب / الشخص</label>
+                    <input type="text" id="filter-person" placeholder="اكتب اسم الشخص (مثال: زيدون)">
+                </div>
+                <div class="form-group">
+                    <label>من تاريخ (اختياري)</label>
+                    <input type="date" id="filter-start-date">
+                </div>
+                <div class="form-group">
+                    <label>إلى تاريخ (اختياري)</label>
+                    <input type="date" id="filter-end-date">
+                </div>
+            </div>
+            <button onclick="generateStatement()" class="btn btn-primary">توليد الكشف</button>
+
+            <table style="margin-top: 30px;">
+                <thead>
+                    <tr>
+                        <th>التاريخ</th>
+                        <th>البيان (التفاصيل)</th>
+                        <th>العملة</th>
+                        <th>وارد (له)</th>
+                        <th>صادر (عليه)</th>
+                    </tr>
+                </thead>
+                <tbody id="statement-table-body">
+                    <!-- نتائج الفلترة -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- التبويبة الثالثة: لوحة التحكم -->
+        <div id="tab-dashboard" class="tab-content">
+            <h2>ملخص الصندوق (بالدينار العراقي IQD)</h2>
+            <div class="cards-grid">
+                <div class="card income">
+                    <h3>إجمالي الوارد</h3>
+                    <div class="amount" id="total-income-iqd">0</div>
+                </div>
+                <div class="card expense">
+                    <h3>إجمالي الصادر</h3>
+                    <div class="amount" id="total-expense-iqd">0</div>
+                </div>
+                <div class="card">
+                    <h3>الرصيد الحالي</h3>
+                    <div class="amount" id="balance-iqd">0</div>
+                </div>
+            </div>
+
+            <h2 style="margin-top: 40px;">ملخص الصندوق (بالدولار الأمريكي USD)</h2>
+            <div class="cards-grid">
+                <div class="card income">
+                    <h3>إجمالي الوارد</h3>
+                    <div class="amount" id="total-income-usd">0</div>
+                </div>
+                <div class="card expense">
+                    <h3>إجمالي الصادر</h3>
+                    <div class="amount" id="total-expense-usd">0</div>
+                </div>
+                <div class="card">
+                    <h3>الرصيد الحالي</h3>
+                    <div class="amount" id="balance-usd">0</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // 1. قاعدة البيانات الوهمية (Array)
+        let dbTransactions = [];
+
+        // تعيين تاريخ اليوم كقيمة افتراضية
+        document.getElementById('t-date').valueAsDate = new Date();
+
+        // 2. دالة التنقل بين التبويبات
+        function openTab(evt, tabId) {
+            let tabContents = document.getElementsByClassName("tab-content");
+            for (let i = 0; i < tabContents.length; i++) {
+                tabContents[i].classList.remove("active");
+            }
+            let navBtns = document.getElementsByClassName("nav-btn");
+            for (let i = 0; i < navBtns.length; i++) {
+                navBtns[i].classList.remove("active");
+            }
+            document.getElementById(tabId).classList.add("active");
+            evt.currentTarget.classList.add("active");
+            
+            // تحديث لوحة التحكم إذا تم فتحها
+            if(tabId === 'tab-dashboard') updateDashboard();
+        }
+
+        // 3. دالة إضافة قيد جديد (اليومية)
+        document.getElementById('transaction-form').addEventListener('submit', function(e) {
+            e.preventDefault(); // منع إعادة تحميل الصفحة
+            
+            // سحب البيانات من الحقول
+            const newTx = {
+                type: document.getElementById('t-type').value,
+                amount: parseFloat(document.getElementById('t-amount').value),
+                currency: document.getElementById('t-currency').value,
+                date: document.getElementById('t-date').value,
+                costCenter: document.getElementById('t-cost-center').value,
+                person: document.getElementById('t-person').value,
+                order: document.getElementById('t-order').value,
+                details: document.getElementById('t-details').value
+            };
+
+            // حفظ القيد في المصفوفة
+            dbTransactions.push(newTx);
+            
+            // إعادة رسم جدول اليومية
+            renderTransactionsTable();
+            
+            // تفريغ بعض الحقول وتنبيه المستخدم
+            document.getElementById('t-amount').value = '';
+            document.getElementById('t-details').value = '';
+            alert("تم حفظ القيد وترحيله بنجاح!");
+        });
+
+        // 4. دالة عرض القيود في جدول اليومية
+        function renderTransactionsTable() {
+            const tbody = document.getElementById('transactions-table-body');
+            tbody.innerHTML = ''; // تفريغ الجدول القديم
+            
+            // عرض أحدث القيود أولاً
+            dbTransactions.slice().reverse().forEach(tx => {
+                let color = tx.type === 'وارد' ? 'green' : 'red';
+                let tr = `<tr>
+                    <td>${tx.date}</td>
+                    <td style="color:${color}; font-weight:bold;">${tx.type}</td>
+                    <td>${tx.amount.toLocaleString()}</td>
+                    <td>${tx.currency}</td>
+                    <td>${tx.person}</td>
+                    <td>${tx.costCenter}</td>
+                    <td>${tx.details}</td>
+                </tr>`;
+                tbody.innerHTML += tr;
+            });
+        }
+
+        // 5. دالة تحديث لوحة التحكم (ترحيل الأرصدة)
+        function updateDashboard() {
+            let inIQD = 0, outIQD = 0;
+            let inUSD = 0, outUSD = 0;
+
+            dbTransactions.forEach(tx => {
+                if (tx.currency === 'IQD') {
+                    if (tx.type === 'وارد') inIQD += tx.amount;
+                    if (tx.type === 'صادر') outIQD += tx.amount;
+                } else if (tx.currency === 'USD') {
+                    if (tx.type === 'وارد') inUSD += tx.amount;
+                    if (tx.type === 'صادر') outUSD += tx.amount;
+                }
+            });
+
+            document.getElementById('total-income-iqd').innerText = inIQD.toLocaleString();
+            document.getElementById('total-expense-iqd').innerText = outIQD.toLocaleString();
+            document.getElementById('balance-iqd').innerText = (inIQD - outIQD).toLocaleString();
+
+            document.getElementById('total-income-usd').innerText = inUSD.toLocaleString();
+            document.getElementById('total-expense-usd').innerText = outUSD.toLocaleString();
+            document.getElementById('balance-usd').innerText = (inUSD - outUSD).toLocaleString();
+        }
+
+        // 6. دالة فلترة وتوليد كشف الذمة
+        function generateStatement() {
+            const personFilter = document.getElementById('filter-person').value.trim();
+            const startDate = document.getElementById('filter-start-date').value;
+            const endDate = document.getElementById('filter-end-date').value;
+            const tbody = document.getElementById('statement-table-body');
+            tbody.innerHTML = '';
+
+            if(!personFilter) {
+                alert("الرجاء كتابة اسم الشخص أولاً");
+                return;
+            }
+
+            // الفلترة المنطقية
+            const filteredData = dbTransactions.filter(tx => {
+                let matchPerson = tx.person.includes(personFilter);
+                let matchStart = startDate ? tx.date >= startDate : true;
+                let matchEnd = endDate ? tx.date <= endDate : true;
+                return matchPerson && matchStart && matchEnd;
+            });
+
+            if(filteredData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">لا توجد حركات مطابقة لهذا الشخص</td></tr>';
+                return;
+            }
+
+            // عرض البيانات المفلترة
+            filteredData.forEach(tx => {
+                let isIncome = tx.type === 'وارد';
+                let tr = `<tr>
+                    <td>${tx.date}</td>
+                    <td>${tx.details}</td>
+                    <td>${tx.currency}</td>
+                    <td style="color:green; font-weight:bold;">${isIncome ? tx.amount.toLocaleString() : '-'}</td>
+                    <td style="color:red; font-weight:bold;">${!isIncome ? tx.amount.toLocaleString() : '-'}</td>
+                </tr>`;
+                tbody.innerHTML += tr;
+            });
+        }
+    </script>
+</body>
+</html>
